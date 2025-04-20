@@ -3,7 +3,8 @@ import pandas as pd
 import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 import google.generativeai as genai
-genai.configure(api_key="API_KEY")
+import os
+genai.configure(api_key=os.getenv("API_KEY"))
 
 # Load the DataFrame from .pkl file
 with open("shl_assessments_with_embeddings.pkl", "rb") as f:
