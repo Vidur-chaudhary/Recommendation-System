@@ -41,7 +41,7 @@ def evaluate(input: EvaluationRequest):
 #show csv data in json form 
 
 
-@app.get("/assessments")
+@app.get("/")
 def list_assessments(limit: int = 10):
     # GitHub raw CSV URL
     csv_url = "https://raw.githubusercontent.com/Vidur-chaudhary/Recommendation-System/main/shl_assessments.csv"
