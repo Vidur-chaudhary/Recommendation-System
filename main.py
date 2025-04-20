@@ -40,7 +40,7 @@ def evaluate(input: EvaluationRequest):
 #show csv data in json form 
 @app.get("/assessments")
 def list_assessments(limit: int = 10):
-    csv_path = "/Users/vidurchaudhary/Downloads/SHL/shl_assessments.csv"
+    csv_path = "https://raw.githubusercontent.com/Vidur-chaudhary/Recommendation-System/main/shl_assessments.csv"
 
     if not os.path.isfile(csv_path):
         return Response(
