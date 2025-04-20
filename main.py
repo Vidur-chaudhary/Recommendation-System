@@ -7,7 +7,8 @@ import os
 import json
 from fastapi.middleware.cors import CORSMiddleware
 from evaluate import compute_recall_at_k, compute_map_at_k
-
+import requests
+from io import StringIO
 app = FastAPI()
 
 
@@ -38,28 +39,37 @@ def evaluate(input: EvaluationRequest):
     }
 
 #show csv data in json form 
+
+
 @app.get("/assessments")
 def list_assessments(limit: int = 10):
-    csv_path = "https://raw.githubusercontent.com/Vidur-chaudhary/Recommendation-System/main/shl_assessments.csv"
-
-    if not os.path.isfile(csv_path):
-        return Response(
-            content=json.dumps({"error": "CSV file not found."}, indent=2),
-            media_type="application/json"
-        )
+    # GitHub raw CSV URL
+    csv_url = "https://raw.githubusercontent.com/Vidur-chaudhary/Recommendation-System/main/shl_assessments.csv"
 
     try:
-        df = pd.read_csv(csv_path)
+        # Fetch the CSV file content from GitHub
+        response = requests.get(csv_url)
+        
+        # Check if the request was successful
+        if response.status_code != 200:
+            return Response(
+                content=json.dumps({"error": f"Failed to retrieve CSV. Status code: {response.status_code}"}, indent=2),
+                media_type="application/json"
+            )
+
+        # Use StringIO to read the CSV content as a file-like object
+        df = pd.read_csv(StringIO(response.text))
         preview = df.head(limit)
         json_data = preview.to_dict(orient="records")
 
-        # Use json.dumps with indent to make it look nice
+        # Return JSON response
         return Response(
             content=json.dumps(json_data, indent=2),
             media_type="application/json"
         )
 
     except Exception as e:
+        # Handle any exceptions that occur
         return Response(
             content=json.dumps({"error": str(e)}, indent=2),
             media_type="application/json"
