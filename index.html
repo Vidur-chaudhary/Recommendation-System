@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SHL Assessment Recommender</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(-45deg, #6dd5ed, #2193b0, #fcb045, #ee7752);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.97);
+      padding: 30px 40px;
+      max-width: 750px;
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.5s ease;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #2d3436;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-top: 10px;
+      resize: vertical;
+      background-color: #f9f9f9;
+    }
+
+    button {
+      background: linear-gradient(to right, #00b4db, #0083b0);
+      color: white;
+      font-weight: bold;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #0083b0, #00b4db);
+      box-shadow: 0 0 10px #00b4db88;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+      font-size: 0.95rem;
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid #f1f1f1;
+    }
+
+    th {
+      background-color: #f1f9ff;
+      color: #2c3e50;
+    }
+
+    tr:hover {
+      background-color: #f7f9fc;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #evaluation-section {
+      margin-top: 25px;
+      display: none;
+    }
+
+    #evalScore {
+      margin-top: 10px;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .welcome {
+      text-align: center;
+    }
+
+    .welcome h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .welcome p {
+      font-size: 1.1rem;
+      color: #555;
+    }
+    .tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  border-bottom: 1px dotted #888;
+}
+
+.tooltip:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 10;
+  opacity: 0.95;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Welcome Page -->
+  <div class="container" id="welcome-page">
+    <div class="welcome">
+      <h1>👋 Welcome to SHL Recommender</h1>
+      <p>Get smart assessment recommendations using AI.</p>
+      <button onclick="showApp()">Get Started</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="container hidden fade-in" id="app-page">
+    <h2>🔍 SHL Assessment Recommender</h2>
+    <p>Enter a job description or hiring goal:</p>
+    <textarea id="query" placeholder="e.g. Looking for a developer with strong programming and reasoning skills"></textarea>
+    <button onclick="recommend()">Recommend</button>
+
+    <div id="results" class="status-message"></div>
+    <button onclick="showEvaluation()" id="evalBtn" style="display:none;">Evaluate This Query</button>
+
+    <div id="evaluation-section">
+      <h3>📊 Evaluation</h3>
+      <p>Enter relevant keywords (comma-separated):</p>
+      <input type="text" id="relevantInput" placeholder="e.g. Developer, Coding, Programming" />
+      <button onclick="evaluateResults()">Run Evaluation</button>
+      <div id="evalScore"></div>
+    </div>
+  </div>
+
+  <script>
+    let latestQuery = "";
+
+    function showApp() {
+      document.getElementById("welcome-page").classList.add("hidden");
+      const appPage = document.getElementById("app-page");
+      appPage.classList.remove("hidden");
+      appPage.classList.add("fade-in");
+    }
+
+    async function recommend() {
+      const query = document.getElementById('query').value;
+      latestQuery = query;
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<p>Fetching recommendations...</p>';
+
+      const response = await fetch('http://127.0.0.1:8000/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+
+      const data = await response.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        resultsDiv.innerHTML = '<p>No recommendations found.</p>';
+        return;
+      }
+
+      let table = '<table><tr><th>Name</th><th>Test Type</th><th>Remote</th><th>Adaptive</th><th>Link</th></tr>';
+      data.forEach(assessment => {
+        table += `<tr>
+          <td>${assessment.assessment_name}</td>
+          <td>${formatTestTypes(assessment.test_type)}</td>
+          <td>${assessment.remote_testing}</td>
+          <td>${assessment.adaptive_support}</td>
+          <td><a href="${assessment.url}" target="_blank">View</a></td>
+        </tr>`;
+      });
+      table += '</table>';
+      resultsDiv.innerHTML = table;
+
+      document.getElementById('evalBtn').style.display = 'block';
+      document.getElementById('evaluation-section').style.display = 'none';
+    }
+
+    function showEvaluation() {
+      document.getElementById('evaluation-section').style.display = 'block';
+    }
+
+    async function evaluateResults() {
+      const relevant = document.getElementById('relevantInput').value
+        .split(",")
+        .map(x => x.trim())
+        .filter(Boolean);
+
+      if (!latestQuery || relevant.length === 0) {
+        alert("Please enter relevant keywords.");
+        return;
+      }
+
+      const response = await fetch("http://127.0.0.1:8000/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: latestQuery,
+          relevant_keywords: relevant,
+          k: 5
+        })
+      });
+
+      const data = await response.json();
+
+      document.getElementById("evalScore").innerHTML = `
+        <p><strong>Recall@5:</strong> ${data.recall_at_k}</p>
+        <p><strong>MAP@5:</strong> ${data.map_at_k}</p>
+      `;
+    }
+
+  const typeDescriptions = {
+    A: "Ability & Aptitude",
+    B: "Biodata & Situational Judgement",
+    C: "Competencies",
+    D: "Development & 360",
+    E: "Assessment Exercises",
+    K: "Knowledge & Skills",
+    P: "Personality & Behavior",
+    S: "Simulations"
+  };
+
+  function formatTestTypes(typeString) {
+    const codes = typeString.split(",").map(code => code.trim());
+    return codes.map(code => {
+      const full = typeDescriptions[code] || "Unknown";
+      return `<span class="tooltip" title="${full}">${code}</span>`;
+    }).join(", ");
+  }
+
+
+  </script>
+</body>
+</html>

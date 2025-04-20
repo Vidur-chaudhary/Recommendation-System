@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+pandas
+numpy
+scikit-learn
+google-generativeai
+faiss-cpu
+selenium
+webdriver-manager
