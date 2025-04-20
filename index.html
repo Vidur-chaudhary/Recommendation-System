@@ -131,29 +131,29 @@
       font-size: 1.1rem;
       color: #555;
     }
+
     .tooltip {
-  position: relative;
-  display: inline-block;
-  cursor: help;
-  border-bottom: 1px dotted #888;
-}
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      border-bottom: 1px dotted #888;
+    }
 
-.tooltip:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  z-index: 10;
-  opacity: 0.95;
-}
-
+    .tooltip:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      z-index: 10;
+      opacity: 0.95;
+    }
   </style>
 </head>
 <body>
@@ -189,6 +189,8 @@
   <script>
     let latestQuery = "";
 
+    const apiBase = "https://recommendation-system-8mjl.onrender.com";
+
     function showApp() {
       document.getElementById("welcome-page").classList.add("hidden");
       const appPage = document.getElementById("app-page");
@@ -202,7 +204,7 @@
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '<p>Fetching recommendations...</p>';
 
-      const response = await fetch('http://127.0.0.1:8000/recommend', {
+      const response = await fetch(`${apiBase}/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
@@ -247,7 +249,7 @@
         return;
       }
 
-      const response = await fetch("http://127.0.0.1:8000/evaluate", {
+      const response = await fetch(`${apiBase}/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -265,26 +267,24 @@
       `;
     }
 
-  const typeDescriptions = {
-    A: "Ability & Aptitude",
-    B: "Biodata & Situational Judgement",
-    C: "Competencies",
-    D: "Development & 360",
-    E: "Assessment Exercises",
-    K: "Knowledge & Skills",
-    P: "Personality & Behavior",
-    S: "Simulations"
-  };
+    const typeDescriptions = {
+      A: "Ability & Aptitude",
+      B: "Biodata & Situational Judgement",
+      C: "Competencies",
+      D: "Development & 360",
+      E: "Assessment Exercises",
+      K: "Knowledge & Skills",
+      P: "Personality & Behavior",
+      S: "Simulations"
+    };
 
-  function formatTestTypes(typeString) {
-    const codes = typeString.split(",").map(code => code.trim());
-    return codes.map(code => {
-      const full = typeDescriptions[code] || "Unknown";
-      return `<span class="tooltip" title="${full}">${code}</span>`;
-    }).join(", ");
-  }
-
-
+    function formatTestTypes(typeString) {
+      const codes = typeString.split(",").map(code => code.trim());
+      return codes.map(code => {
+        const full = typeDescriptions[code] || "Unknown";
+        return `<span class="tooltip" title="${full}">${code}</span>`;
+      }).join(", ");
+    }
   </script>
 </body>
 </html>
